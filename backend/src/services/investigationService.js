@@ -1,15 +1,14 @@
-import { investigationGraph } from '../graph/investigationGraph.js';
+import { buildInvestigationGraph } from '../graph/investigationGraph.js';
 import { createInitialState } from '../graph/stateDefinition.js';
 import { 
   getCaseById, getEvidenceForCase, getPersonsForCase, 
   getStatementsForCase, getEventsForCase, updateCaseStatus,
-  saveInvestigationState, saveAgentMessage
+  saveInvestigationState, saveAgentMessage, getRosterForCase
 } from '../db/queries.js';
 import { broadcast } from '../websocket/wsServer.js';
 
 export const startInvestigation = async (caseId) => {
   try {
-    // Fetch all case data from Exasol
     const caseData = await getCaseById(caseId);
     if (!caseData) throw new Error(`Case ${caseId} not found`);
 
@@ -17,28 +16,31 @@ export const startInvestigation = async (caseId) => {
     const persons = await getPersonsForCase(caseId);
     const statements = await getStatementsForCase(caseId);
     const events = await getEventsForCase(caseId);
+    
+    const roster = await getRosterForCase(caseId);
+    if (!roster || roster.length === 0) {
+      throw new Error(`No investigation roster found for case ${caseId}. Please add characters to CASE_ROSTER.`);
+    }
 
-    // Build initial state with all DB data
     const initialState = createInitialState(
       caseId, caseData, evidence, persons, statements, events
     );
 
-    // Update case status to ACTIVE
-    await updateCaseStatus(caseId, { status: 'ACTIVE', current_stage: 'INITIAL_ANALYSIS', confidence: 0 });
+    const initialStage = roster[0].agent_key.toUpperCase();
+
+    await updateCaseStatus(caseId, { status: 'ACTIVE', current_stage: initialStage, confidence: 0 });
 
     broadcast({ type: 'state_update', payload: { 
-      caseId, status: 'ACTIVE', stage: 'INITIAL_ANALYSIS', confidence: 0 
+      caseId, status: 'ACTIVE', stage: initialStage, confidence: 0 
     }});
 
     console.log(`Starting investigation for case ${caseId}`);
 
-    // Run the LangGraph investigation pipeline
-    const finalState = await investigationGraph.invoke(initialState);
+    const graph = buildInvestigationGraph(roster);
+    const finalState = await graph.invoke(initialState);
 
-    // Save final state
     await saveInvestigationState(caseId, finalState);
 
-    // Update case record with final status
     await updateCaseStatus(caseId, {
       status: finalState.status || 'BLOCKED',
       current_stage: finalState.stage || 'CASE_REVIEW',
@@ -53,7 +55,7 @@ export const startInvestigation = async (caseId) => {
     await updateCaseStatus(caseId, { status: 'BLOCKED', current_stage: 'BLOCKED', confidence: 0 });
     const failureMessage = `The AI investigation could not continue: ${error.message}`;
     try {
-      await saveAgentMessage(caseId, 'system', 'Investigation System', 'ALERT', failureMessage);
+      await saveAgentMessage(caseId, 'system', 'Investigation System', 'ALERT', failureMessage, failureMessage, 'BLOCKED');
     } catch (saveError) {
       console.error('Unable to save investigation error message:', saveError.message);
     }

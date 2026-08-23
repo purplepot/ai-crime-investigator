@@ -209,3 +209,21 @@ CREATE TABLE  INVESTIGATION_STATE (
     created_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (case_id) REFERENCES CASES(case_id)
 );
+
+-- -----------------------------------------------------------
+-- 13. CASE_ROSTER — Per-case investigation team characters
+-- -----------------------------------------------------------
+CREATE TABLE  CASE_ROSTER (
+    roster_id       VARCHAR(36)   PRIMARY KEY,
+    case_id         VARCHAR(36)   NOT NULL,
+    agent_key       VARCHAR(50)   NOT NULL,      -- Unique key within this case (e.g., officer_davis)
+    display_name    VARCHAR(200)  NOT NULL,      -- UI display name
+    role_type       VARCHAR(30)   NOT NULL,      -- COORDINATOR, FORENSICS, PROFILER, SPECIALIST, WITNESS_ANALYST, INTERROGATOR, LEGAL_REVIEW
+    persona         VARCHAR(5000),               -- Character background injected into LLM prompt
+    initials        VARCHAR(5),                  -- Avatar initials (e.g., PD, FS)
+    color           VARCHAR(30)   DEFAULT 'slate', -- Tailwind color key
+    icon            VARCHAR(30)   DEFAULT 'user',  -- Lucide icon name
+    sequence_order  INTEGER       NOT NULL,      -- Execution order in the pipeline (1, 2, 3...)
+    created_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (case_id) REFERENCES CASES(case_id)
+);

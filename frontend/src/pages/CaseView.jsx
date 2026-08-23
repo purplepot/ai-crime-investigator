@@ -17,6 +17,7 @@ import { MessageSquare, FileText, User, Clock, AlertTriangle, Network } from 'lu
 export default function CaseView() {
   const { id } = useParams();
   const { currentCase, messages, actions, evidence, suspects, timeline, setMessages, setActions, updateCaseState } = useCaseStore();
+  const roster = useCaseStore(state => state.roster);
   const { fetchCase, fetchCaseData, startInvestigation, addEvidence } = useApi();
   useWebSocket(id);
 
@@ -94,7 +95,7 @@ export default function CaseView() {
                 onStart={handleStart}
               />
             )}
-            {activeTab === 'network' && <AgentGraph selectedAgent={selectedAgent} onSelectAgent={setSelectedAgent} activeAgents={messages.slice(-3).map(m => m.agent_id || m.agent_name)} messages={messages} />}
+            {activeTab === 'network' && <AgentGraph roster={roster} selectedAgent={selectedAgent} onSelectAgent={setSelectedAgent} activeAgents={messages.slice(-3).map(m => m.agent_id || m.agent_name)} messages={messages} />}
             {activeTab === 'evidence' && (
               <div className="h-full flex flex-col overflow-hidden bg-surface border border-border rounded-md p-5">
                 <div className="flex justify-between items-center mb-4 shrink-0">

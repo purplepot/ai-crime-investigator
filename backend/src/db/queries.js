@@ -203,6 +203,13 @@ export const updateActionStatus = async (actionId, status, result) => {
   await db.execute(`UPDATE INVESTIGATION.AGENT_ACTIONS SET status = '${status}', "RESULT" = '${(result || '').replace(/'/g, "''")}', completed_at = CURRENT_TIMESTAMP WHERE action_id = '${actionId}'`);
 };
 
+// ─── CASE ROSTER ──────────────────────────────────────────────────
+export const getRosterForCase = async (caseId) => {
+  const db = await getDb();
+  const resultRaw = await db.query(`SELECT * FROM INVESTIGATION.CASE_ROSTER WHERE case_id = '${caseId}' ORDER BY sequence_order ASC`);
+  return mapResult(resultRaw);
+};
+
 export const getAgentMessages = getMessagesForCase;
 export const getAgentActions = getActionsForCase;
 export const getSuspectProfiles = getSuspectProfilesForCase;

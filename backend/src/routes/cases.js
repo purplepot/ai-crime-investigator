@@ -4,7 +4,7 @@ import { startInvestigation } from '../services/investigationService.js';
 import { 
   getAllCases, getCaseById, getAgentMessages, getAgentActions,
   getEventsForCase, getSuspectProfiles, getSuspectsForCase, getEvidenceForCase,
-  getPersonsForCase, getInvestigationState, clearInvestigationRun
+  getPersonsForCase, getInvestigationState, clearInvestigationRun, getRosterForCase
 } from '../db/queries.js';
 import { broadcast } from '../websocket/wsServer.js';
 
@@ -41,8 +41,9 @@ router.get('/:id', async (req, res) => {
     const evidence = await getEvidenceForCase(req.params.id);
     const persons = await getPersonsForCase(req.params.id);
     const state = await getInvestigationState(req.params.id);
+    const roster = await getRosterForCase(req.params.id);
     
-    res.json({ case: caseData, evidence, persons, state });
+    res.json({ case: caseData, evidence, persons, state, roster });
   } catch (err) {
     console.error('Error fetching case:', err);
     res.status(500).json({ error: err.message });
@@ -120,6 +121,17 @@ router.get('/:id/state', async (req, res) => {
     res.json(state || {});
   } catch (err) {
     console.error('Error fetching state:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/cases/:id/roster — Get investigation team roster
+router.get('/:id/roster', async (req, res) => {
+  try {
+    const roster = await getRosterForCase(req.params.id);
+    res.json(roster || []);
+  } catch (err) {
+    console.error('Error fetching roster:', err);
     res.status(500).json({ error: err.message });
   }
 });

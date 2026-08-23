@@ -10,7 +10,9 @@ export const useCaseStore = create((set, get) => ({
   evidence: [],
   loading: false,
   error: null,
+  roster: [],
   
+  setRoster: (roster) => set({ roster }),
   setCases: (cases) => set({ cases }),
   setCurrentCase: (caseData) => set({ currentCase: caseData }),
   setMessages: (messages) => set({ messages }),
