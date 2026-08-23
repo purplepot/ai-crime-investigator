@@ -1,130 +1,257 @@
-# 🔍 Murder Mystery AI Agent Swarm
+# 🔍 AI Crime Investigator
+### Autonomous Multi-Agent Forensic Swarm & Analytical Database Engine
 
-An AI-powered multi-agent investigation system where specialized AI agents collaborate to solve murder cases. Built with **Exasol DB**, **LangGraph.js**, and **React**.
+**AI Crime Investigator** is an autonomous multi-agent forensic investigation system where a swarm of specialized AI agents collaborate in real-time to solve complex criminal cases. 
 
-## Architecture
+Unlike traditional LLM applications that hallucinate premature conclusions, this system employs a rigorous legal framework: agents cross-examine evidence, verify timelines, profile suspects using quantitative **MOMA** (Motive, Opportunity, Means, Alibi) metrics, and know when they **cannot** solve a case—transitioning into a structured **`WAITING`** state to prescribe exact forensic actions.
+
+The system is powered by **Exasol DB** as its high-performance in-memory analytical memory, **LangGraph.js** as the agent orchestration state machine, **Google Gemini** as the reasoning backbone, and a **React 18** minimalist interface with real-time WebSocket telemetry.
+
+---
+
+## 🏛️ System Architecture
 
 ```
-                    USER
-                     │
-                     ▼
-               React Frontend        ◄── Dark minimalist investigation UI
-                     │
-                WebSocket/SSE
-                     │
-                     ▼
-              Node.js Backend        ◄── Express API + WebSocket server
-                     │
-                     ▼
-              LangGraph Runtime      ◄── Agent orchestration state machine
-                     │
-         ┌───────────┼───────────┐
-         ▼           ▼           ▼
-    Lead Agent  Evidence    Interview
-    Suspect     Timeline    Prosecutor
-         │           │           │
-         └───────────┼───────────┘
-                     ▼
-                 EXASOL DB          ◄── Investigation memory + analytics
+                                  USER INTERFACE
+                          (React 18 + Vite + Tailwind CSS)
+                           Light / Dark Mode • Dynamic Graph
+                                         │
+                                   WebSocket / REST
+                                         │
+                                         ▼
+                                NODE.JS BACKEND
+                         (Express API + WebSocket Server)
+                                         │
+                                         ▼
+                               LANGGRAPH RUNTIME
+                     (State Machine Orchestration Engine)
+                                         │
+     ┌───────────────────┬───────────────┼───────────────┬───────────────────┐
+     ▼                   ▼               ▼               ▼                   ▼
+🕵️ Lead Detective   🔬 Evidence      👤 Suspect     ⏱️ Timeline     🎤 Interview   ⚖️ Prosecutor
+   (Coordinator)      (Forensics)     (MOMA Model)   (Chronology)    (Questioning)   (Legal Review)
+     │                   │               │               │                   │              │
+     └───────────────────┴───────────────┼───────────────┴───────────────────┴──────────────┘
+                                         │
+                                         ▼
+                                     EXASOL DB
+                 ┌───────────────────────────────────────────────┐
+                 │  • In-Memory Analytical Relational Memory     │
+                 │  • 12 Investigation Tables (`INVESTIGATION`)  │
+                 │  • Analytical SQL Contradiction Engine        │
+                 │  • Versioned State Snapshots & Auditing       │
+                 └───────────────────────────────────────────────┘
 ```
 
-## The Team of Agents
+---
 
-| Agent | Role |
-|-------|------|
-| 🕵️ **Lead Detective** | Directs the investigation, assigns tasks, evaluates findings |
-| 🔬 **Evidence Analyst** | Analyzes physical/digital evidence, assigns reliability scores |
-| 👤 **Suspect Analyst** | Profiles suspects: motive, opportunity, means, alibi |
-| 🎤 **Interview Agent** | Generates targeted questions based on gaps and contradictions |
-| ⏱️ **Timeline Agent** | Builds/validates timeline, detects contradictions |
-| ⚖️ **Prosecutor** | Evaluates evidence sufficiency, prevents premature conclusions |
+## 💾 Database Layer: Exasol as the Investigation Memory
 
-## Key Feature
+The core backbone of the system is **Exasol**, utilized not merely as a passive data store, but as an **active, high-speed analytical memory engine** that maintains the collective state, factual ground truth, and cross-evidence relationships for the AI agent swarm.
 
-> Agents don't have to solve the case. They know when they **cannot** solve it,
-> explain why, identify the missing information, and propose the next investigative action.
+### 1. The `INVESTIGATION` Relational Schema (12 Tables)
 
-## Tech Stack
+The database models real-world forensic epistemology across 12 relational tables:
 
-- **Database**: Exasol (investigation memory + analytics)
-- **Backend**: Node.js + Express + LangGraph.js
-- **LLM**: OpenAI GPT-4o-mini
-- **Frontend**: React + Vite + Tailwind CSS
-- **Real-time**: WebSocket
+| Table | Purpose & Architecture |
+|---|---|
+| **`CASES`** | Primary case registry storing case metadata, confidence score (0–100%), stage tracking, and lifecycle status (`CREATED`, `ACTIVE`, `WAITING`, `RESOLVED`). |
+| **`PERSONS`** | Entities of interest categorized by role (`VICTIM`, `SUSPECT`, `WITNESS`, `PERSON_OF_INTEREST`) with demographic and relationship data. |
+| **`LOCATIONS`** | Physical scene anchors, rooms, zones, and security access points with coordinates. |
+| **`EVIDENCE`** | Forensic artifacts categorized by type (`PHYSICAL`, `DIGITAL`, `FORENSIC`, `TESTIMONY`, `DOCUMENT`, `LOCATION`), reliability index ($0.00 - 1.00$), and analysis state. |
+| **`STATEMENTS`** | Formal interrogation records, witness accounts, timestamps, locations, and credibility weightings. |
+| **`EVENTS`** | Chronological event logs reconstructed from digital telemetry, CCTV records, and physical traces, with verification flags. |
+| **`SUSPECT_PROFILES`** | Quantitative **MOMA** framework profiles calculating motive, opportunity, means, alibi status (`VERIFIED`, `UNVERIFIED`, `BROKEN`), and cumulative suspicion score ($0.00 - 1.00$). |
+| **`HYPOTHESES`** | Plausible case theories formulated by agents, tracking supporting evidence, contradicting evidence, and plausibility score. |
+| **`CONTRADICTIONS`** | Factual conflicts identified during cross-examination (e.g. alibi statements conflicting with CCTV event timestamps). |
+| **`AGENT_MESSAGES`** | High-throughput inter-agent communication stream capturing structured message types (`ANALYSIS`, `FINDING`, `QUESTION`, `DIRECTION`, `ALERT`, `CONCLUSION`). |
+| **`AGENT_ACTIONS`** | Specific actionable investigative tasks assigned by agents (`FORENSIC_TEST`, `VERIFY_ALIBI`, `COLLECT_EVIDENCE`, `INTERVIEW`), with priority and completion status. |
+| **`INVESTIGATION_STATE`** | Immutable, versioned JSON state snapshots of the entire LangGraph knowledge graph for point-in-time auditing and replayability. |
 
-## Setup
+---
+
+### 2. Analytical Forensics SQL Engine (`db/queries.sql`)
+
+The database executes complex analytical SQL queries to compute forensic insights directly in-engine:
+
+* **Contradiction Detection Engine:** Performs relational joins across `STATEMENTS`, `EVENTS`, and `EVIDENCE` to identify temporal and spatial impossibilities (e.g., suspect claiming to be home while CCTV proves entry elsewhere).
+* **Multi-Dimensional Suspect Ranking:** Computes weighted mathematical scores combining physical evidence reliability, alibi fragility, and motive strength to rank persons of interest.
+* **Timeline Gap & Anomaly Analysis:** Detects unobserved critical intervals between timestamps in `EVENTS` to highlight windows of opportunity.
+* **Investigation Bottleneck Identification:** Analyzes open `AGENT_ACTIONS` to pinpoint critical-path blockers preventing case resolution.
+* **Cross-Case Pattern Matching:** Compares modus operandi and weapon characteristics across distinct cases.
+
+---
+
+### 3. Exasol Integration & Concurrency Management
+
+* **WebSocket Driver Integration:** Direct connection to Exasol via `@exasol/exasol-driver-ts` over encrypted WebSocket channels.
+* **Asynchronous Mutex Concurrency Layer:** Implemented an in-memory asynchronous Mutex in the Node.js database layer (`src/db/connection.js`) to serialize high-throughput parallel queries emitted simultaneously by all 6 agents during swarm execution.
+* **Dynamic Column-to-Row Data Mapper:** Integrated bidirectional result set transformation (`src/db/queries.js`) that translates Exasol's high-efficiency column-oriented data structures into standard entity models consumed by the frontend and AI agents.
+
+---
+
+## 🤖 The 6-Agent Swarm
+
+Each agent operates as a specialized autonomous node in the **LangGraph** state machine:
+
+| Agent | Avatar | Role & Forensic Responsibility |
+|---|:---:|---|
+| **Lead Detective** | 🔵 `LD` | **Chief Coordinator.** Evaluates the case briefing, decomposes the investigation into sub-goals, and assigns targeted investigation directives to specialists. |
+| **Evidence Analyst** | 🔷 `EA` | **Forensic Specialist.** Examines physical, digital, and biological evidence; assesses forensic reliability; identifies uncollected evidence. |
+| **Suspect Analyst** | 🔴 `SA` | **Behavioral Profiler.** Applies the quantitative **MOMA** model (Motive, Opportunity, Means, Alibi) to calculate suspicion indices for each person of interest. |
+| **Timeline Agent** | 🟠 `TA` | **Chronology Specialist.** Reconstructs minute-by-minute sequences from phone logs, CCTV records, and testimonies to pinpoint gaps and contradictions. |
+| **Interview Agent** | 🟢 `IA` | **Interrogator.** Analyzes witness and suspect statements, identifying inconsistencies and formulating high-leverage interrogation questions. |
+| **Prosecutor** | 🟣 `PR` | **Legal Review Gatekeeper.** Enforces strict legal sufficiency standards. Evaluates reasonable doubt, detects defense vulnerabilities, and renders the verdict (`WAITING` vs `RESOLVED`). |
+
+---
+
+## 🔄 Investigation Lifecycle
+
+```
+[ Case Created ] ──► [ Lead Detective Briefing ]
+                             │
+                             ▼
+               ┌───────────────────────────┐
+               │    Parallel Analysis      │
+               │  • Evidence Evaluation    │
+               │  • MOMA Suspect Profiling │
+               │  • Timeline Construction  │
+               │  • Witness Statement Exam │
+               └─────────────┬─────────────┘
+                             │
+                             ▼
+                  [ Gap & Contradiction Exam ]
+                             │
+                             ▼
+               [ Prosecutor Legal Review ]
+                    /                 \
+                   /                   \
+        Evidence Overwhelming?      Reasonable Doubt / Missing Evidence?
+                 │                                    │
+                 ▼                                    ▼
+       ✅ Status: RESOLVED                  ⏳ Status: WAITING
+       (Case Solved & Final Verdict)         (Specific Action Required)
+                                                      │
+                                                      ▼
+                                         [ User Submits Evidence ]
+                                                      │
+                                                      └─► (Re-runs Swarm)
+```
+
+---
+
+## ✨ Frontend Features
+
+* **Interactive Swarm Architecture Network:** Real-time visual graph displaying the 6 agents with dynamic SVG bezier curve routing and active pulsing indicators.
+* **Pinned Multitask Workspace:** Independent scroll zones ensure navigation tabs (Chat, Network, Evidence Registry, Suspects, Chronological Timeline) remain pinned during active review.
+* **Agent Log Stream:** Click on any agent node in the network to open a dedicated log popover displaying their specific deductions, queries, and findings.
+* **Full Light & Dark Theme Support:** Instant, persistent theme toggle with CSS variable injection and high-contrast typography.
+* **Evidence Submission Portal:** Modal dialog to inject new physical items, documents, testimonies, or location data into Exasol to unblock stalled cases.
+
+---
+
+## 🚀 Quick Start Guide
 
 ### Prerequisites
+* **Node.js** v18 or higher
+* **Exasol Database** (Local or Cloud instance running on port `8563`)
+* **Google Gemini API Key** (or OpenAI API Key)
 
-- Node.js 18+
-- Exasol Personal Edition ([install](https://www.exasol.com/install/))
-- OpenAI API key
+---
 
-### 1. Database
+### Step 1: Database Setup
 
+Ensure your Exasol instance is running:
 ```bash
-# Install Exasol Personal (if not already installed)
-curl https://www.exasol.com/install/ | sh
-exasol install local
-
-# Run schema + seed data via Exasol SQL client
-# Execute db/schema.sql then db/seed.sql
+# If using Exasol Docker
+docker run --name exasoldb -p 8563:8563 -d exasol/docker-db:latest
 ```
 
-### 2. Backend
+The backend automatically runs schema initialization and seed migration on startup, creating the `INVESTIGATION` schema and loading the sample case *"The Locked Room Murder"*.
+
+---
+
+### Step 2: Backend Configuration & Startup
 
 ```bash
 cd backend
 npm install
-
-# Edit .env with your API keys
-# OPENAI_API_KEY=sk-your-key-here
-
-npm run dev
-# Server starts on http://localhost:3001
 ```
 
-### 3. Frontend
+Configure your `.env` file in `backend/.env`:
+```env
+PORT=3001
+EXASOL_HOST=localhost
+EXASOL_PORT=8563
+EXASOL_USER=sys
+EXASOL_PASSWORD=exasol
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+Start the backend server:
+```bash
+npm run dev
+# Backend API & WebSocket running at http://localhost:3001
+```
+
+---
+
+### Step 3: Frontend Startup
 
 ```bash
-cd frontend
+cd ../frontend
 npm install
 npm run dev
-# UI starts on http://localhost:5173
+# Frontend web interface running at http://localhost:5173
 ```
 
-### 4. Use it
+---
 
-1. Open `http://localhost:5173`
-2. You'll see the demo case "The Locked Room Murder"
-3. Click into the case → Click **Start Investigation**
-4. Watch the agents discuss the case in real-time
-5. See them analyze evidence, profile suspects, build timelines
-6. When they get stuck → they tell you exactly what to do next
+### Step 4: Run an Investigation
 
-## Project Structure
+1. Open `http://localhost:5173` in your browser.
+2. Select **"The Locked Room Murder"** from the dashboard.
+3. Review the initial evidence, suspect profiles, and timeline events loaded from Exasol.
+4. Click **`INITIATE INVESTIGATION`**.
+5. Watch the 6 agents communicate over WebSocket, construct timelines, detect contradictions, and output findings.
+6. When the investigation enters **`WAITING`**, review the Prosecutor's recommended next action, click **`SUBMIT REQUIRED EVIDENCE`** to provide the missing clue, and trigger re-analysis!
+
+---
+
+## 📁 Repository Structure
 
 ```
 exasol-hack/
-├── frontend/          # React + Vite + Tailwind
-├── backend/           # Node.js + Express + LangGraph
-├── db/                # Exasol SQL schemas + seed data
-│   ├── schema.sql     # 12 investigation tables
-│   ├── seed.sql       # Sample murder case
-│   └── queries.sql    # Analytical showcase queries
+├── backend/
+│   ├── src/
+│   │   ├── agents/            # The 6 AI agent persona definitions & prompts
+│   │   ├── db/                # Exasol connection pool, schema runner & query mapper
+│   │   ├── graph/             # LangGraph state machine & state definitions
+│   │   ├── routes/            # Express REST endpoints (cases, evidence, agents)
+│   │   ├── services/          # Investigation & case management orchestrators
+│   │   ├── websocket/         # Real-time WebSocket event broadcaster
+│   │   └── server.js          # Application entry point
+│   ├── package.json
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── components/        # UI components (AgentGraph, Chat, Cards, Modals, Toggle)
+│   │   ├── hooks/             # WebSocket and REST API data hooks
+│   │   ├── pages/             # Dashboard and CaseView pages
+│   │   ├── stores/            # Zustand global state store
+│   │   ├── App.jsx            # Main React routing and navigation header
+│   │   └── index.css          # Theme variables and global styling
+│   ├── tailwind.config.js
+│   └── package.json
+├── db/
+│   ├── schema.sql             # 12 Exasol investigation tables (DDL)
+│   ├── seed.sql               # "The Locked Room Murder" seed dataset (DML)
+│   └── queries.sql            # Analytical forensic showcase queries
 └── README.md
 ```
 
-## Exasol Analytical Queries
+---
 
-The `db/queries.sql` file contains powerful analytical queries that showcase Exasol's value:
+## 📄 License
 
-- **Contradiction Detection** — Find statements that conflict with evidence
-- **Suspect Ranking** — Rank suspects by cumulative evidence weight
-- **Timeline Gap Analysis** — Identify missing periods in the timeline
-- **Investigation Bottleneck Analysis** — What's blocking progress
-- **Cross-Case Pattern Matching** — Find similar patterns across cases
-
-## License
-
-MIT
+This project is open-source and available under the **MIT License**.
