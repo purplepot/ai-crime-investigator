@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Crime Investigator</title>
+    <script>
+      (function() {
+        const theme = localStorage.getItem('theme') || 'light';
+        const isDark = theme === 'dark';
+        const root = document.documentElement;
+        if (isDark) {
+          root.classList.add('dark');
+          root.style.setProperty('--color-primary', '#09090b');
+          root.style.setProperty('--color-surface', '#121215');
+          root.style.setProperty('--color-surface-hover', '#1c1c21');
+          root.style.setProperty('--color-border', '#27272a');
+          root.style.setProperty('--color-text-primary', '#f4f4f5');
+          root.style.setProperty('--color-text-secondary', '#a1a1aa');
+          root.style.setProperty('--color-text-muted', '#71717a');
+        } else {
+          root.classList.remove('dark');
+          root.style.setProperty('--color-primary', '#ffffff');
+          root.style.setProperty('--color-surface', '#ffffff');
+          root.style.setProperty('--color-surface-hover', '#f4f4f5');
+          root.style.setProperty('--color-border', '#e4e4e7');
+          root.style.setProperty('--color-text-primary', '#09090b');
+          root.style.setProperty('--color-text-secondary', '#52525b');
+          root.style.setProperty('--color-text-muted', '#a1a1aa');
+        }
+      })();
+    </script>
+  </head>
+  <body class="bg-primary text-text-primary h-screen w-screen overflow-hidden">
+    <div id="root" class="h-full w-full"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
