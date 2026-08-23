@@ -115,7 +115,32 @@ export const getSuspectsForCase = async (caseId) => {
 export const upsertSuspectProfile = async (caseId, data) => {
   const db = await getDb();
   const id = crypto.randomUUID();
-  await db.execute(`INSERT INTO INVESTIGATION.SUSPECT_PROFILES (profile_id, case_id, person_id, motive, opportunity, means, alibi_status, overall_suspicion, summary) VALUES ('${id}', '${caseId}', '${data.person_id}', '${String(data.motive ?? data.motive_score ?? 0).replace(/'/g, "''")}', '${String(data.opportunity ?? data.opportunity_score ?? 0).replace(/'/g, "''")}', '${String(data.means ?? data.means_score ?? 0).replace(/'/g, "''")}', '${data.alibi_status || 'UNKNOWN'}', ${data.overall_suspicion ?? 0}, '${(data.summary || '').replace(/'/g, "''")}')`);
+  const motiveScore = Number(data.motive_score ?? data.motive ?? 0);
+  const oppScore = Number(data.opportunity_score ?? data.opportunity ?? 0);
+  const meansScore = Number(data.means_score ?? data.means ?? 0);
+  const alibiScore = Number(data.alibi_score ?? 0);
+  const overallSuspicion = Number(data.overall_suspicion ?? 0);
+  
+  const motiveDetail = (data.motive_detail || '').replace(/'/g, "''");
+  const oppDetail = (data.opportunity_detail || '').replace(/'/g, "''");
+  const meansDetail = (data.means_detail || '').replace(/'/g, "''");
+  const alibiDetail = (data.alibi_detail || '').replace(/'/g, "''");
+  const alibiStatus = (data.alibi_status || 'UNKNOWN').replace(/'/g, "''");
+  const summary = (data.summary || '').replace(/'/g, "''");
+
+  try {
+    await db.execute(`DELETE FROM INVESTIGATION.SUSPECT_PROFILES WHERE case_id = '${caseId}' AND person_id = '${data.person_id}'`);
+  } catch (err) {}
+
+  await db.execute(`INSERT INTO INVESTIGATION.SUSPECT_PROFILES (
+    profile_id, case_id, person_id, motive_score, motive_detail,
+    opportunity_score, opportunity_detail, means_score, means_detail,
+    alibi_score, alibi_detail, alibi_status, overall_suspicion, summary
+  ) VALUES (
+    '${id}', '${caseId}', '${data.person_id}', ${motiveScore}, '${motiveDetail}',
+    ${oppScore}, '${oppDetail}', ${meansScore}, '${meansDetail}',
+    ${alibiScore}, '${alibiDetail}', '${alibiStatus}', ${overallSuspicion}, '${summary}'
+  )`);
   return id;
 };
 
@@ -161,7 +186,34 @@ export const getStatementsForCase = async (caseId) => {
 
 export const getSuspectProfilesForCase = async (caseId) => {
   const db = await getDb();
-  const resultRaw = await db.query(`SELECT sp.*, p.name, p.occupation, p.relationship, p.description as person_description FROM INVESTIGATION.SUSPECT_PROFILES sp JOIN INVESTIGATION.PERSONS p ON sp.person_id = p.person_id WHERE sp.case_id = '${caseId}' ORDER BY sp.overall_suspicion DESC`);
+  const resultRaw = await db.query(`
+    SELECT 
+      p.person_id as id,
+      p.person_id,
+      p.case_id,
+      p.name,
+      p.age,
+      p.occupation,
+      p.role,
+      p.relationship,
+      p.description,
+      sp.profile_id,
+      COALESCE(sp.motive_score, 0) as motive_score,
+      sp.motive_detail,
+      COALESCE(sp.opportunity_score, 0) as opportunity_score,
+      sp.opportunity_detail,
+      COALESCE(sp.means_score, 0) as means_score,
+      sp.means_detail,
+      COALESCE(sp.alibi_score, 0) as alibi_score,
+      sp.alibi_detail,
+      COALESCE(sp.alibi_status, 'UNKNOWN') as alibi_status,
+      COALESCE(sp.overall_suspicion, 0) as overall_suspicion,
+      sp.summary as profile_summary
+    FROM INVESTIGATION.PERSONS p
+    LEFT JOIN INVESTIGATION.SUSPECT_PROFILES sp ON p.person_id = sp.person_id AND sp.case_id = p.case_id
+    WHERE p.case_id = '${caseId}' AND p.role = 'SUSPECT'
+    ORDER BY COALESCE(sp.overall_suspicion, 0) DESC, p.name ASC
+  `);
   return mapResult(resultRaw);
 };
 

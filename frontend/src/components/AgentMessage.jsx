@@ -14,6 +14,57 @@ const COLOR_MAP = {
   slate: { dpBg: 'bg-slate-600 text-white border-slate-700', badge: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/50' },
 };
 
+// Formats inline text with bolding and links
+function renderFormattedText(text) {
+  if (!text) return null;
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-semibold text-text-primary">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
+
+// Renders lines as concise bullet points or clean paragraphs
+function MessageBody({ content }) {
+  if (!content) {
+    return <span className="text-text-muted italic">No details recorded.</span>;
+  }
+
+  const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
+
+  return (
+    <div className="space-y-1.5 text-[13px] leading-snug">
+      {lines.map((line, idx) => {
+        const isBullet = line.startsWith('•') || line.startsWith('-') || line.startsWith('*');
+        const cleanLine = isBullet ? line.replace(/^[•\-*]\s*/, '') : line;
+
+        if (isBullet) {
+          return (
+            <div key={idx} className="flex items-start gap-2 text-text-primary pl-1">
+              <span className="text-accent-blue font-bold shrink-0 leading-5">•</span>
+              <div className="flex-1 leading-relaxed">
+                {renderFormattedText(cleanLine)}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <p key={idx} className="text-text-primary leading-relaxed font-medium">
+            {renderFormattedText(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AgentMessage({ message }) {
   const roster = useCaseStore(state => state.roster);
   const agentKey = String(message.agent_id || message.agent_name || '').toLowerCase().replace(/\s+/g, '_');
@@ -38,7 +89,7 @@ export default function AgentMessage({ message }) {
   const label = message.message_type ? message.message_type.toLowerCase().replace(/_/g, ' ') : 'update';
   
   return (
-    <div className="mb-4 flex gap-3 items-start">
+    <div className="mb-3.5 flex gap-3 items-start">
       {/* Colored Agent Avatar (DP) */}
       <div className={`w-8 h-8 shrink-0 rounded-full border flex items-center justify-center text-[10px] font-bold tracking-wider shadow-sm select-none ${config.dpBg}`}>
         {config.initials}
@@ -46,21 +97,21 @@ export default function AgentMessage({ message }) {
 
       {/* Message Content Container */}
       <div className="flex-1 min-w-0 flex flex-col">
-        <div className="flex items-center gap-2 mb-1.5 px-0.5">
+        <div className="flex items-center gap-2 mb-1 px-0.5">
           <span className="text-xs font-semibold text-text-primary">{agentName}</span>
           <span className={`text-[9px] uppercase tracking-wider font-mono px-1.5 py-0.5 rounded border ${config.badge}`}>
             {label}
           </span>
           {timestamp && (
-            <span className="ml-auto text-[10px] text-text-muted">
+            <span className="ml-auto text-[10px] text-text-muted font-mono">
               {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
         </div>
 
-        {/* Uniform White Background Card for All Agents */}
-        <div className="rounded-md p-4 text-sm leading-relaxed whitespace-pre-wrap bg-surface border border-border text-text-primary shadow-minimal">
-          {message.content || 'No details were recorded for this update.'}
+        {/* Crisp Card with Styled Bullets and Bolding */}
+        <div className="rounded-md px-3.5 py-2.5 bg-surface border border-border text-text-primary shadow-minimal">
+          <MessageBody content={message.content} />
         </div>
       </div>
     </div>

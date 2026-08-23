@@ -1,11 +1,11 @@
 # 🔍 AI Crime Investigator
-### Autonomous Multi-Agent Forensic Swarm & Analytical Database Engine
+### Autonomous Multi-Agent Forensic Swarm & In-Memory Analytical Database Engine
 
-**AI Crime Investigator** is an autonomous multi-agent forensic investigation system where dynamic swarms of specialized AI agents collaborate in real-time to solve complex criminal cases.
+**AI Crime Investigator** is a multi-agent forensic investigation system where autonomous swarms of specialized AI agents collaborate in real-time to solve complex homicide cases.
 
-Unlike traditional LLM applications that hallucinate premature conclusions, this system employs a rigorous legal and analytical framework: agents cross-examine evidence, verify timelines, profile suspects using quantitative **MOMA** (Motive, Opportunity, Means, Alibi) metrics, and recognize when evidence is insufficient—transitioning into a structured **`WAITING`** state to prescribe exact forensic actions.
+Unlike traditional LLM applications that hallucinate premature conclusions, this system enforces a rigorous legal and analytical framework: agents cross-examine evidence, reconstruct timelines, profile suspects using quantitative **MOMA** (Motive, Opportunity, Means, Alibi) metrics, and recognize when evidence is insufficient—transitioning into a structured **`WAITING`** state to prescribe exact forensic actions needed to proceed.
 
-The system is powered by **Exasol DB** as its in-memory analytical memory, **LangGraph.js** as the dynamic state machine orchestration engine, **Google Gemini** with intelligent multi-model/multi-key failover as the reasoning backbone, and a **React 18** interface with real-time WebSocket telemetry.
+The system is powered by **Exasol DB** as its high-performance in-memory analytical relational memory, **LangGraph.js** as the dynamic state machine orchestration engine, **Google Gemini** with intelligent multi-model/multi-key failover as the reasoning backbone, and a **React 18** minimalist interface with real-time WebSocket telemetry.
 
 ---
 
@@ -14,7 +14,7 @@ The system is powered by **Exasol DB** as its in-memory analytical memory, **Lan
 ```
                                   USER INTERFACE
                           (React 18 + Vite + Tailwind CSS)
-                       Light / Dark Mode • Dynamic Swarm Graph
+                    Light / Dark Mode • Dynamic Swarm Network Graph
                                          │
                                    WebSocket / REST
                                          │
@@ -48,7 +48,7 @@ The system is powered by **Exasol DB** as its in-memory analytical memory, **Lan
 
 ## 💾 Database Layer: Exasol as the Investigation Memory
 
-The foundational backbone of the system is **Exasol**, utilized as an **active, high-speed in-memory analytical database** that maintains the collective state, factual ground truth, forensic relationships, and dynamic character rosters for the AI agent swarm.
+The core backbone of the system is **Exasol**, utilized not merely as a passive data store, but as an **active, high-speed analytical relational memory engine** that maintains the collective state, factual ground truth, forensic cross-references, and dynamic character rosters for the AI agent swarm.
 
 ### 1. The `INVESTIGATION` Relational Schema (13 Tables)
 
@@ -58,12 +58,12 @@ The database models real-world forensic epistemology across 13 relational tables
 |---|---|
 | **`CASES`** | Primary case registry storing case metadata, confidence score (0–100%), stage tracking, and lifecycle status (`CREATED`, `ACTIVE`, `WAITING`, `RESOLVED`). |
 | **`CASE_ROSTER`** | **Dynamic Character Roster.** Stores per-case investigator casts (`roster_id`, `case_id`, `agent_key`, `display_name`, `role_type`, `persona`, `initials`, `color`, `icon`, `sequence_order`). |
-| **`PERSONS`** | Entities of interest categorized by role (`VICTIM`, `SUSPECT`, `WITNESS`, `OTHER`) with demographic and relationship data. |
+| **`PERSONS`** | Entities of interest categorized by role (`VICTIM`, `SUSPECT`, `WITNESS`, `OTHER`) with demographic, occupation, and relationship data. |
 | **`LOCATIONS`** | Physical scene anchors, rooms, zones, and security checkpoints with descriptions and case relevance. |
 | **`EVIDENCE`** | Forensic artifacts categorized by type (`PHYSICAL`, `DIGITAL`, `FORENSIC`, `TESTIMONY`, `DOCUMENT`, `CCTV`), reliability index ($0.00 - 1.00$), and analysis state. |
 | **`STATEMENTS`** | Formal interrogation records, witness accounts, referenced timestamps, and credibility weightings. |
 | **`EVENTS`** | Chronological event logs reconstructed from digital telemetry, CCTV records, and physical traces, with verification flags. |
-| **`SUSPECT_PROFILES`** | Quantitative **MOMA** framework profiles calculating motive, opportunity, means, alibi status (`VERIFIED`, `UNVERIFIED`, `BROKEN`), and cumulative suspicion score ($0.00 - 1.00$). |
+| **`SUSPECT_PROFILES`** | Quantitative **MOMA** framework profiles calculating motive, opportunity, means, alibi status (`VERIFIED`, `UNVERIFIED`, `BROKEN`, `CONTRADICTED`), and cumulative suspicion score ($0.00 - 1.00$). |
 | **`HYPOTHESES`** | Plausible case theories formulated by agents, tracking supporting evidence, contradicting evidence, and confidence score. |
 | **`INTERVIEWS`** | Recorded interview sessions conducted by agents with specific targets, goals, and transcripts. |
 | **`AGENT_MESSAGES`** | High-throughput inter-agent communication stream capturing structured message types (`ANALYSIS`, `FINDING`, `QUESTION`, `DIRECTION`, `ALERT`, `CONCLUSION`). |
@@ -84,7 +84,7 @@ The database executes complex analytical SQL queries to compute forensic insight
 
 ---
 
-### 3. Exasol Driver & Concurrency Architecture
+### 3. Exasol Integration & Concurrency Management
 
 * **WebSocket Driver Integration:** Direct connection to Exasol via `@exasol/exasol-driver-ts` over encrypted WebSocket channels.
 * **Asynchronous Mutex Concurrency Layer:** Implemented an in-memory asynchronous Mutex in `backend/src/db/connection.js` to serialize high-throughput parallel queries emitted simultaneously by all agents during swarm execution.
@@ -94,9 +94,9 @@ The database executes complex analytical SQL queries to compute forensic insight
 
 ## 👥 Dynamic Per-Case Character Rosters & Orchestration
 
-Instead of recycling the same static agents across every case, **AI Crime Investigator** dynamically loads unique character casts from the Exasol database.
+Instead of recycling the same static agents across every scenario, **AI Crime Investigator** dynamically loads unique character casts from the Exasol database.
 
-Each character is defined in `CASE_ROSTER` and maps to one of **7 core analytical role frameworks**:
+Every case defines a custom roster in `CASE_ROSTER`, mapping each investigator or witness to one of **7 analytical role frameworks**:
 
 ```
 CASE_ROSTER (Exasol)
@@ -123,10 +123,10 @@ CASE_ROSTER (Exasol)
 ```
 
 ### The 7 Analytical Role Frameworks:
-1. **`COORDINATOR`**: Directs the investigation team, defines lines of inquiry, and identifies critical information gaps.
+1. **`COORDINATOR`**: Directs the team, establishes lines of inquiry, and identifies critical information gaps.
 2. **`FORENSICS`**: Examines physical, digital, and biological evidence; evaluates forensic reliability scores ($0.00 - 1.00$).
 3. **`PROFILER`**: Evaluates Motive, Opportunity, Means, and Alibi (**MOMA**) to compute weighted suspicion scores.
-4. **`SPECIALIST`**: Analyzes domain-specific artifacts (e.g. lock mechanisms, maritime customs manifests, hotel security systems).
+4. **`SPECIALIST`**: Analyzes domain-specific artifacts (e.g., deadbolt mechanisms, maritime shipping logs, hotel keycard telemetry).
 5. **`WITNESS_ANALYST`**: Provides personal testimony, relationship context, and insider observations.
 6. **`INTERROGATOR`**: Identifies statement contradictions and formulates targeted cross-examination questions.
 7. **`LEGAL_REVIEW`**: Gatekeeper evaluating legal admissibility and reasonable doubt (`WAITING` vs `RESOLVED`).
@@ -136,7 +136,7 @@ CASE_ROSTER (Exasol)
 ## 📁 The 3 Seeded Cases & Character Casts
 
 ### 🔒 Case #1024: The Locked Room Murder
-*Tech CEO John Harrison found dead in a study locked from the inside by a heavy brass deadbolt.*
+*Tech CEO John Harrison found dead in a private study locked from the inside by a heavy brass deadbolt.*
 - 👮 **Patrol Officer Davis** (`COORDINATOR`): First responder who breached the locked door.
 - 🔬 **Forensics Lead Sterling** (`FORENSICS`): Fingerprint and blood spatter specialist.
 - 🔑 **Master Locksmith Jenkins** (`SPECIALIST`): Physical security and deadbolt mechanism expert.
@@ -166,7 +166,7 @@ CASE_ROSTER (Exasol)
 
 ## ⚡ Multi-Model & Multi-Key Failover Engine
 
-To guarantee 100% uptime during high-concurrency investigations, `geminiModel.js` implements **two-dimensional fallback switching**:
+To guarantee resilience during high-concurrency investigations, `geminiModel.js` implements **two-dimensional fallback switching**:
 
 1. **Intra-Key Model Switching**: If a model encounters a rate limit (429), quota exhaustion, temporary overload (503), or deprecation, it instantly attempts fallback models using the **same API key**:
    - `gemini-2.5-flash` → `gemini-2.0-flash` → `gemini-1.5-flash` → `gemini-2.5-pro` → `gemini-1.5-pro` → `gemini-3.5-flash` → `gemini-3-flash` → `gemini-3.6-flash` → `gemini-3.7-flash` → `gemini-3.1-pro`
@@ -215,9 +215,10 @@ To guarantee 100% uptime during high-concurrency investigations, `geminiModel.js
 
 * **Dynamic Network Topology Graph:** Adapts automatically to any case's character roster, rendering a 3-column layout with dynamic SVG bezier curves and active pulsing glow indicators.
 * **Agent Log Stream Popover:** Click any investigator node to open their dedicated investigation log and reasoning chain in the bottom-right corner.
-* **Multitask Split Workspace:** Pinned tabs (Swarm Network, Real-time Chat, Suspect Profiles, Evidence Locker, Timeline) ensure seamless multitasking.
-* **Evidence Submission Portal:** Modal dialog to inject newly discovered physical artifacts, digital logs, statements, or location data into Exasol to unblock stalled cases.
-* **Light & Dark Theme Support:** Instant theme toggle with CSS variable injection and persistent preference storage.
+* **Rich Suspect Dossiers:** Detailed cards featuring full biographical records, occupation, age, relationship to victim, background case connections, MOMA progress bars with live quantitative scores, and alibi status badges.
+* **High-Signal Structured Chat:** Displays concise, high-density bulleted deductions with bold headlines instead of overwhelming text walls.
+* **Interactive Evidence Injection:** Modal dialog to inject newly discovered physical artifacts, digital logs, statements, or location data into Exasol to unblock stalled cases.
+* **Full Light & Dark Theme Support:** Instant theme toggle with CSS variable injection and persistent preference storage.
 
 ---
 
@@ -315,7 +316,7 @@ exasol-hack/
 │   └── .env
 ├── frontend/
 │   ├── src/
-│   │   ├── components/        # Dynamic AgentGraph, Chat, StatusBadge, EvidenceModal, etc.
+│   │   ├── components/        # Dynamic AgentGraph, Chat, SuspectCard, EvidenceModal, etc.
 │   │   ├── hooks/             # WebSocket and REST API data hooks
 │   │   ├── pages/             # Dashboard and CaseView pages
 │   │   ├── stores/            # Zustand global state store (with roster support)

@@ -77,7 +77,16 @@ export default function CaseView() {
         <section className="flex flex-col h-full min-h-0 min-w-0 p-5 lg:border-r border-border overflow-hidden">
           <div className="flex gap-1 mb-4 overflow-x-auto custom-scrollbar border-b border-border shrink-0">
             {tabs.map(t => (
-              <button key={t.id} onClick={() => setActiveTab(t.id)} className={`flex items-center gap-2 px-3 py-2.5 border-b-2 -mb-px text-xs font-semibold uppercase tracking-wider transition-colors ${activeTab === t.id ? 'border-text-primary text-text-primary' : 'border-transparent text-text-muted hover:text-text-primary'}`}>
+              <button 
+                key={t.id} 
+                onClick={() => {
+                  setActiveTab(t.id);
+                  if (t.id === 'chat') {
+                    setSelectedAgent(null);
+                  }
+                }} 
+                className={`flex items-center gap-2 px-3 py-2.5 border-b-2 -mb-px text-xs font-semibold uppercase tracking-wider transition-colors ${activeTab === t.id ? 'border-text-primary text-text-primary' : 'border-transparent text-text-muted hover:text-text-primary'}`}
+              >
                 <t.icon size={16} /> {t.label}
               </button>
             ))}
@@ -91,6 +100,9 @@ export default function CaseView() {
                   const msgAgent = String(m.agent_id || m.agent_name || '').toLowerCase().replace(/\s+/g, '_');
                   return msgAgent === key || (m.agent_id && m.agent_id === selectedAgent);
                 }) : messages} 
+                totalMessagesCount={messages.length}
+                selectedAgent={selectedAgent}
+                onClearFilter={() => setSelectedAgent(null)}
                 caseItem={currentCase}
                 onStart={handleStart}
               />
