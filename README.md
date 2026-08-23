@@ -7,41 +7,47 @@ Unlike traditional LLM applications that hallucinate premature conclusions, this
 
 The system is powered by **Exasol DB** as its high-performance in-memory analytical relational memory, **LangGraph.js** as the dynamic state machine orchestration engine, **Google Gemini** with intelligent multi-model/multi-key failover as the reasoning backbone, and a **React 18** minimalist interface with real-time WebSocket telemetry.
 
+## 🎬 Video Demonstration & Project Walkthrough
+
+Watch the complete project demonstration explaining the architecture, multi-agent reasoning, Exasol in-memory analytical database, and real-time investigation lifecycle:
+
+👉 **[Watch the Full Video Demonstration (Google Drive)](https://drive.google.com/file/d/1IC_M9RkLj84B-t620IxXMRloJg_O0u2Y/view?usp=sharing)**
+
 ---
 
 ## 🏛️ System Architecture
 
 ```
-                                  USER INTERFACE
-                          (React 18 + Vite + Tailwind CSS)
-                    Light / Dark Mode • Dynamic Swarm Network Graph
-                                         │
-                                   WebSocket / REST
-                                         │
-                                         ▼
-                                NODE.JS BACKEND
-                         (Express API + WebSocket Server)
-                                         │
-                                         ▼
-                        DYNAMIC LANGGRAPH ORCHESTRATOR
-                   (Data-Driven State Machine per Case Roster)
-                                         │
-     ┌───────────────────┬───────────────┼───────────────┬───────────────────┐
-     ▼                   ▼               ▼               ▼                   ▼
-👮 Coordinator       🔬 Forensics     👤 Profiler     ⏱️ Chronology   🎤 Interrogator  ⚖️ Legal Review
-(e.g., Officer Davis) (e.g., Dr. Thorne) (MOMA Engine)  (e.g., Locksmith) (e.g., Det. Ruiz) (e.g., DA Walsh)
-     │                   │               │               │                   │              │
-     └───────────────────┴───────────────┼───────────────┴───────────────────┴──────────────┘
-                                         │
-                                         ▼
-                                     EXASOL DB
-                 ┌───────────────────────────────────────────────┐
-                 │  • In-Memory Analytical Relational Memory     │
-                 │  • 13 Investigation Tables (`INVESTIGATION`)  │
-                 │  • Dynamic Case Character Rosters             │
-                 │  • Analytical SQL Contradiction Engine        │
-                 │  • Versioned State Snapshots & Auditing       │
-                 └───────────────────────────────────────────────┘
+                                      USER INTERFACE
+                             (React 18 + Vite + Tailwind CSS)
+                      Light / Dark Mode • Dynamic Swarm Network Graph
+                                             │
+                                       WebSocket / REST
+                                             │
+                                             ▼
+                                    NODE.JS BACKEND
+                             (Express API + WebSocket Server)
+                                             │
+                                             ▼
+                            DYNAMIC LANGGRAPH ORCHESTRATOR
+                       (Data-Driven State Machine per Case Roster)
+                                             │
+       ┌─────────────────────┬───────────────┼───────────────┬─────────────────────┐
+       ▼                     ▼               ▼               ▼                     ▼
+👮 Officer Kowalski   🔦 Frankie Miller 📦 Agent Cross  🔬 Diver Hayes   🎤 Det. Carla Ruiz   ⚖️ DA Walsh
+  (COORDINATOR)      (WITNESS ANALYST)  (SPECIALIST)    (FORENSICS)       (INTERROGATOR)    (LEGAL REVIEW)
+       │                     │               │               │                     │              │
+       └─────────────────────┴───────────────┼───────────────┴─────────────────────┴──────────────┘
+                                             │
+                                             ▼
+                                         EXASOL DB
+                     ┌───────────────────────────────────────────────┐
+                     │  • In-Memory Analytical Relational Memory     │
+                     │  • 13 Investigation Tables (`INVESTIGATION`)  │
+                     │  • Dynamic Case Character Rosters             │
+                     │  • Analytical SQL Contradiction Engine        │
+                     │  • Versioned State Snapshots & Auditing       │
+                     └───────────────────────────────────────────────┘
 ```
 
 ---
@@ -295,14 +301,30 @@ To guarantee resilience during high-concurrency investigations, `geminiModel.js`
 
 ---
 
-## ✨ Frontend Features
+## ✨ Frontend Features & UI Showcase
 
-* **Dynamic Network Topology Graph:** Adapts automatically to any case's character roster, rendering a 3-column layout with dynamic SVG bezier curves and active pulsing glow indicators.
-* **Agent Log Stream Popover:** Click any investigator node to open their dedicated investigation log and reasoning chain in the bottom-right corner.
-* **Rich Suspect Dossiers:** Detailed cards featuring full biographical records, occupation, age, relationship to victim, background case connections, MOMA progress bars with live quantitative scores, and alibi status badges.
-* **High-Signal Structured Chat:** Displays concise, high-density bulleted deductions with bold headlines instead of overwhelming text walls.
-* **Interactive Evidence Injection:** Modal dialog to inject newly discovered physical artifacts, digital logs, statements, or location data into Exasol to unblock stalled cases.
-* **Full Light & Dark Theme Support:** Instant theme toggle with CSS variable injection and persistent preference storage.
+The frontend is built with **React 18 + Vite + Tailwind CSS**, featuring a responsive minimalist dark aesthetic with real-time WebSocket state streaming:
+
+### 📸 Core Application Views
+
+#### 1. 🗂️ Active Investigations Dashboard
+* **Master Case Registry:** Displays all active homicide cases with their live investigative confidence scores and stage markers.
+* **Legal Status Badges:** Visual indicators highlighting cases in `ACTIVE`, `RESOLVED`, or `WAITING` states.
+
+#### 2. 🕸️ Dynamic Swarm Architecture Network (`Live Routing`)
+* **3-Column Forensic Pipeline:** Dynamically maps investigator roles into a clean 3-tier routing topology:
+  - **Column 1 (Left):** First Responder / Scene Coordinator (e.g., `Officer Kowalski`).
+  - **Column 2 (Center):** Parallel Forensic Specialists & Eyewitnesses (e.g., `Frankie Miller`, `Agent Maya Cross`, `Forensic Diver Hayes`, `Det. Carla Ruiz`).
+  - **Column 3 (Right):** Legal Review Gatekeeper (e.g., `District Attorney Walsh`).
+* **Responsive SVG Bezier Connectors:** Renders smooth curved connection paths calculated from live DOM coordinates.
+* **Active Glow Telemetry:** Pulsing green indicators reflect the currently active agent streaming deductions.
+* **Agent Log Stream Popover:** Clicking any investigator node opens their dedicated deduction stream in the bottom-right corner.
+
+#### 3. 💬 Case View & Forensic Telemetry (`Swarm Chat & Prescribed Next Actions`)
+* **High-Density Bulleted Chat:** Formats complex agent reasoning into concise, high-signal bulleted cards with bold headlines.
+* **Legal Sufficiency Action Panel:** Highlights the Prosecutor's prescribed next step (e.g. `FORENSIC_TEST — Heavy Bronze Mooring Wrench`) and enables one-click evidence submission via `[SUBMIT REQUIRED EVIDENCE]`.
+* **Rich Suspect Dossiers (MOMA Engine):** Cards featuring suspect biographies, relationship to victim, background connections, live MOMA score progress bars, and alibi verification badges.
+* **Full Theme Support:** Instant toggle between Dark Mode and Light Mode with persistent local preferences.
 
 ---
 
