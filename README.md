@@ -50,6 +50,43 @@ The system is powered by **Exasol DB** as its high-performance in-memory analyti
 
 The core backbone of the system is **Exasol**, utilized not merely as a passive data store, but as an **active, high-speed analytical relational memory engine** that maintains the collective state, factual ground truth, forensic cross-references, and dynamic character rosters for the AI agent swarm.
 
+---
+
+### ⚡ Why Exasol? How It Differs from Traditional SQL & Powers Our Swarm
+
+| Feature | Traditional SQL (PostgreSQL, MySQL, SQLite) | Exasol In-Memory Analytical Database |
+|---|---|---|
+| **Storage Architecture** | **Row-Oriented Disk Storage:** Reads entire rows from disk/SSD into cache page-by-page. | **In-Memory Columnar Storage:** Entire database resides in RAM with columnar compression. Queries only load required columns, speeding up aggregations and analytical scans by **10x–100x**. |
+| **Execution Model** | **Single-Threaded / OLTP Focused:** Optimized for single-row CRUD transactions; struggles under complex multi-table joins. | **Vectorized In-Memory Analytics:** Executes complex analytical joins (`JOIN`, `GROUP BY`, mathematical scoring) across millions of data points with vectorized CPU instructions in sub-milliseconds. |
+| **Concurrency Under AI Swarms** | **Lock Contention:** Parallel multi-agent write operations frequently block or slow down analytical read queries. | **High-Throughput Concurrent Analytics:** Multiple agents read forensic evidence and write structured deductions simultaneously without table-level locking bottlenecks. |
+| **Indexing & Performance Tuning** | **Manual B-Trees & Vacuums:** Requires manual index creation (`CREATE INDEX`), query planner hints, and periodic maintenance. | **Auto-Indexing & Self-Tuning:** Automatically builds in-memory hash indexes, join trees, and projection projections on the fly based on query patterns. |
+
+---
+
+#### 🧠 How Exasol Specifically Supercharges "AI Crime Investigator"
+
+1. **Sub-Millisecond Contradiction Detection (Cross-Evidence Relational Joins):**
+   - In a murder investigation, finding contradictions between suspect statements, CCTV camera logs, RFID gate telemetry, and forensic lab tests requires joining 4 to 5 relational tables simultaneously (`STATEMENTS` ⨝ `EVENTS` ⨝ `EVIDENCE` ⨝ `LOCATIONS`).
+   - Exasol performs these multi-table joins directly in RAM in sub-milliseconds. Instead of feeding thousands of disorganized tokens to an LLM and hoping it notices a timeline mismatch, Exasol's analytical SQL engine computes the contradictions mathematically and delivers verified factual ground truth to the agents.
+
+2. **High-Throughput Multi-Agent Concurrency Without Bottlenecks:**
+   - During an active swarm run, 6 agents execute in parallel, reading case facts and simultaneously persisting actions, suspect profiles, forensic assessments, and messages.
+   - Exasol's in-memory engine handles concurrent agent telemetry writes and analytical aggregations smoothly without lock contention or query stalls.
+
+3. **In-Engine Forensic Scoring (Mathematical MOMA Model):**
+   - The multi-dimensional MOMA scoring formula:
+     $$\text{Suspicion} = \frac{(\text{Motive} \times 0.35) + (\text{Opportunity} \times 0.35) + (\text{Means} \times 0.15) + (\text{Alibi Deficit} \times 0.15)}{1.0}$$
+     and suspect percentile rankings are computed directly within Exasol via analytical queries (`queries.sql`), offloading complex math from prompt tokens into Exasol's computation engine.
+
+4. **Combatting LLM Hallucinations via Structured Relational Ground Truth:**
+   - Traditional AI bots suffer from context degradation and hallucination when context windows grow large.
+   - By using Exasol as the central relational memory, agents only receive structured, verified facts extracted via SQL queries. At the end of each run, an immutable snapshot of the entire knowledge graph is committed to `INVESTIGATION_STATE` for auditing, debugging, and point-in-time replayability.
+
+5. **Data-Driven Dynamic Multi-Agent Orchestration (`CASE_ROSTER`):**
+   - The swarm pipeline architecture is not hardcoded in JavaScript. The database stores the team roster, role frameworks, avatars, and execution order in `INVESTIGATION.CASE_ROSTER`. Exasol acts as the control plane that drives the dynamic LangGraph state machine.
+
+---
+
 ### 1. The `INVESTIGATION` Relational Schema (13 Tables)
 
 The database models real-world forensic epistemology across 13 relational tables:
@@ -84,11 +121,58 @@ The database executes complex analytical SQL queries to compute forensic insight
 
 ---
 
-### 3. Exasol Integration & Concurrency Management
+### 3. Exasol Deployment: Docker Container & Local Architecture
 
-* **WebSocket Driver Integration:** Direct connection to Exasol via `@exasol/exasol-driver-ts` over encrypted WebSocket channels.
-* **Asynchronous Mutex Concurrency Layer:** Implemented an in-memory asynchronous Mutex in `backend/src/db/connection.js` to serialize high-throughput parallel queries emitted simultaneously by all agents during swarm execution.
-* **Dynamic Column-to-Row Data Mapper:** Integrated bidirectional result set transformation (`backend/src/db/queries.js`) that translates Exasol's high-efficiency column-oriented data structures (`data[colIndex][rowIndex]`) into standard JavaScript row-oriented object arrays.
+The database environment is designed for zero-configuration, production-grade local execution using Docker:
+
+#### 🐳 Docker Container Configuration
+The system leverages the official **`exasol/docker-db`** image, which spins up a standalone Exasol in-memory cluster running in an isolated Linux container:
+
+```bash
+# Pull and start the Exasol database container in background
+docker run --name exasoldb \
+  -p 8563:8563 \
+  --detach \
+  --privileged \
+  exasol/docker-db:latest
+```
+
+* **Port Mapping (`-p 8563:8563`):** Forwards host TCP port `8563` to the internal Exasol WebSocket service.
+* **In-Memory Analytical Engine:** Tables, indexes, and join hash trees reside in-memory with columnar compression, allowing sub-millisecond execution of complex multi-table analytical forensic queries.
+* **Persistent Container Operations:**
+  ```bash
+  # Check container status
+  docker ps -f name=exasoldb
+
+  # Inspect database startup logs
+  docker logs -f exasoldb
+
+  # Restart / Stop container
+  docker restart exasoldb
+  docker stop exasoldb
+  ```
+
+---
+
+#### 🔌 Local Driver Connection & Security
+* **WebSocket Driver Integration:** Direct connection to Exasol via `@exasol/exasol-driver-ts` over encrypted WebSocket channels (`wss://localhost:8563`).
+* **Self-Signed TLS Bypass for Local Dev:** Configured `NODE_TLS_REJECT_UNAUTHORIZED=0` in `.env` to allow seamless local development with Exasol's default TLS certificates.
+* **System Credentials:** Uses standard administrative credentials (`sys` / `exasol`) connecting directly to the default database catalog.
+
+---
+
+#### 🚀 Automated Schema Initialization & Data Seeding
+The backend includes an automated database lifecycle runner (`backend/src/db/schema.js`):
+1. **Schema Check:** On server boot, connects to Exasol and checks if the `INVESTIGATION` schema exists.
+2. **DDL Execution (`schema.sql`):** Creates all 13 relational tables if not already present.
+3. **DML Seeding (`seed.sql`):** Populates the 3 comprehensive murder mystery cases, persons, evidence items, locations, statements, timeline events, and dynamic character rosters automatically.
+4. **Idempotency:** Safe to run repeatedly on restarts without corrupting existing records or violating primary key constraints.
+
+---
+
+#### 🔒 Asynchronous Mutex & Column-to-Row Data Transformation
+* **Asynchronous Mutex Concurrency Layer (`backend/src/db/connection.js`):** When 6 AI agents execute simultaneously in the LangGraph swarm, they generate concurrent read/write queries. An asynchronous Mutex serializes queries over the single underlying WebSocket channel, eliminating socket race conditions.
+* **Dynamic Column-to-Row Data Mapper (`backend/src/db/queries.js`):** Exasol natively returns query results in column-oriented matrices (`data[colIndex][rowIndex]`). Our custom `mapResult()` transformer automatically transposes and maps column metadata into standard JavaScript object arrays consumed by the frontend and AI agents.
 
 ---
 
