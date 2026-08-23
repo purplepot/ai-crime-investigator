@@ -7,11 +7,10 @@ Unlike traditional LLM applications that hallucinate premature conclusions, this
 
 The system is powered by **Exasol DB** as its high-performance in-memory analytical relational memory, **LangGraph.js** as the dynamic state machine orchestration engine, **Google Gemini** with intelligent multi-model/multi-key failover as the reasoning backbone, and a **React 18** minimalist interface with real-time WebSocket telemetry.
 
-## 🎬 Video Demonstration & Project Walkthrough
+## 🎬 Video Demonstration & Pitch Deck
 
-Watch the complete project demonstration explaining the architecture, multi-agent reasoning, Exasol in-memory analytical database, and real-time investigation lifecycle:
-
-👉 **[Watch the Full Video Demonstration (Google Drive)](https://drive.google.com/file/d/1IC_M9RkLj84B-t620IxXMRloJg_O0u2Y/view?usp=sharing)**
+* 🎥 **Video Demonstration & Project Walkthrough:** [Watch on Google Drive](https://drive.google.com/file/d/1IC_M9RkLj84B-t620IxXMRloJg_O0u2Y/view?usp=sharing)
+* 📊 **Official Pitch Deck Presentation:** [View Slides on Google Docs](https://docs.google.com/presentation/d/1MaO4JPZqbYWCaFDfgs_xBxyjIXgStHaF/edit?usp=sharing&ouid=100561647106105216866&rtpof=true&sd=true)
 
 ---
 
